@@ -78,3 +78,9 @@ async function prepareDoc(page: DocPDF) {
   ]);
   return docs;
 }
+
+export async function getStoredVectors(fileKey: string){
+  const pineconeIndex = pc.Index("talk-with-pdf");
+  const namespace = pineconeIndex.namespace(convertToAscii(fileKey));
+  namespace
+}

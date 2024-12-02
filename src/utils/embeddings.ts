@@ -4,7 +4,7 @@ import { Document } from "@pinecone-database/doc-splitter";
 import md5 from "md5";
 import { Vector } from "@pinecone-database/pinecone/dist/pinecone-generated-ts-fetch/db_data";
 
-const client = new OpenAI({
+export const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 

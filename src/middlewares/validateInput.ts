@@ -6,6 +6,7 @@ import { IRequest } from "../utils/types";
 export function validate(schema: ZodSchema) {
   return function (req: IRequest, res: Response, next: NextFunction) {
     try {
+      
       const val = schema.safeParse({
         body: req.body,
         params: req.params,

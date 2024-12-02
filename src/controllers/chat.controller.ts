@@ -4,12 +4,16 @@ import { CustomError } from "../utils/CustomError";
 
 import {
   createChatService,
+  generateTextAi,
   getChatsService,
   getSingleChat,
 } from "../services/chat.service";
 import { IRequest } from "../utils/types";
 import { loadS3IntoPinecone } from "../utils/pinecone";
-import { GetChatType, GetSingleChatType } from "../validation/chat";
+import { GenerateResponse, GetChatType, GetSingleChatType } from "../validation/chat";
+import { P } from "pino";
+import { streamText } from "ai";
+import { openai } from "@ai-sdk/openai";
 
 export async function createChat(
   req: IRequest,
@@ -40,7 +44,7 @@ export async function createChat(
   }
 }
 export async function getChat(
-  req: IRequest<GetSingleChatType["param"]>,
+  req: IRequest<GetSingleChatType["params"]>,
   res: Response,
   next: NextFunction
 ) {
@@ -95,4 +99,30 @@ export async function getChats(
   } catch (e) {
     next(e);
   }
+}
+
+export async function generateText(
+  
+  req: IRequest<{},{},GenerateResponse['body']>,
+  res: Response,
+  next: NextFunction
+){
+  try{
+    const {messages} = req.body
+   
+    const result = streamText({
+      model: openai('gpt-3.5-turbo'),
+      messages,
+      
+    
+    })
+
+    
+    result.pipeTextStreamToResponse(res)
+    
+  }catch(e){
+    throw next(e)
+  }
+
+  
 }

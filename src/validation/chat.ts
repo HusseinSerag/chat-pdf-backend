@@ -1,6 +1,6 @@
 import * as z from "zod";
 export const getSingleZodChat = z.object({
-  param: z.object({
+  params: z.object({
     id: z.coerce.number(),
   }),
 });
@@ -31,3 +31,23 @@ export const getChatZod = z.object({
 });
 
 export type GetChatType = z.infer<typeof getChatZod>;
+
+
+export const MessageZod = z.object({
+  role: z.union([
+    z.literal('system'),
+    z.literal('user'),
+    z.literal('assistant'),
+    z.literal('data'),
+  ]),
+  content: z.string()
+})
+
+
+export const GenerateBody = z.object({
+  body:z.object({
+    messages: MessageZod.array(),
+    fileKey: z.string()
+  })
+})
+export type GenerateResponse = z.infer<typeof GenerateBody>

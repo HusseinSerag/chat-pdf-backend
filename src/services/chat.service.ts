@@ -16,6 +16,10 @@ import {
   TableConfig,
 } from "drizzle-orm/pg-core";
 import { CustomError } from "../utils/CustomError";
+import log from "../utils/logger";
+import { client } from "../utils/embeddings";
+
+
 
 export async function createChatService(
   fileKey: string,
@@ -23,7 +27,7 @@ export async function createChatService(
   userId: string
 ) {
   try {
-    console.log(userId);
+    log.info(userId);
     const chat = await db
       .insert(chatTable)
       .values({
@@ -97,4 +101,25 @@ function createEq<T extends TableConfig>(
   value: any
 ) {
   return eq(table[key], value);
+}
+
+
+export async function generateTextAi(messages: {
+  role: string;
+  content: string;
+}[]) {
+  try{
+
+    const res = await client.completions.create({
+      model:"gpt-3.5-turbo-instruct",
+      stream:true,
+      prompt: JSON.stringify(messages)
+    })
+    return res.toReadableStream()
+   
+    
+    
+  } catch(e){
+    throw e
+  }
 }

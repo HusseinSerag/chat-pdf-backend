@@ -12,7 +12,7 @@ dotenv.config({
 import "./drizzle.config";
 import "./src/utils/s3";
 import { setupRoutes } from "./routes";
-import { clerkMiddleware } from "@clerk/express";
+import { authenticateRequest, clerkClient, clerkMiddleware } from "@clerk/express";
 import { Server } from "socket.io";
 import { setupSocketIO } from "./src/utils/setupSocketIO";
 import "./src/utils/pinecone";
@@ -34,8 +34,11 @@ app.use(clerkMiddleware());
 const port = process.env.PORT || 3000;
 
 app.get("/hc", async (req, res) => {
+  const u = await clerkClient.users.getUserList()
+  authenticateRequest({clerkClient,request:req})
   res.status(200).json({
     message: "Health check correct!",
+    users: u
   });
 });
 
