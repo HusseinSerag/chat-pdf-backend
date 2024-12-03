@@ -17,6 +17,7 @@ export async function getEmbedding(text: string) {
 
     return response.data[0].embedding as number[];
   } catch (e) {
+    log.error(e)
     log.error("Error while calling openAI api");
     throw e;
   }

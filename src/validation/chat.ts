@@ -47,7 +47,8 @@ export const MessageZod = z.object({
 export const GenerateBody = z.object({
   body:z.object({
     messages: MessageZod.array(),
-    fileKey: z.string()
+    fileKey: z.string(),
+    chatId: z.coerce.number()
   })
 })
 export type GenerateResponse = z.infer<typeof GenerateBody>
