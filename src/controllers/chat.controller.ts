@@ -10,7 +10,11 @@ import {
 } from "../services/chat.service";
 import { IRequest } from "../utils/types";
 import { getStoredVectors, loadS3IntoPinecone } from "../utils/pinecone";
-import { GenerateResponse, GetChatType, GetSingleChatType } from "../validation/chat";
+import {
+  GenerateResponse,
+  GetChatType,
+  GetSingleChatType,
+} from "../validation/chat";
 import { P } from "pino";
 import { streamText } from "ai";
 import { openai } from "@ai-sdk/openai";
@@ -106,30 +110,33 @@ export async function getChats(
 }
 
 export async function generateText(
-  
-  req: IRequest<{},{},GenerateResponse['body']>,
+  req: IRequest<{}, {}, GenerateResponse["body"]>,
   res: Response,
   next: NextFunction
-){
-  try{
-    const {messages: passedMessages, fileKey, chatId} = req.body
+) {
+  try {
+    const { messages: passedMessages, fileKey, chatId } = req.body;
     // const chats = await db.select().from(messages).where(
     //   and(
     //     eq(messages.chatId, chatId)
     //   )
     // ).orderBy(messages.createdAt)
 
-    const lastMessages = passedMessages.at(passedMessages.length - 1)
-    const queryEmbedding = await getEmbedding(lastMessages!.content)
-    const matches = getStoredVectors(fileKey, queryEmbedding)
+    const lastMessages = passedMessages.at(passedMessages.length - 1);
+    const queryEmbedding = await getEmbedding(lastMessages!.content);
+    const matches = getStoredVectors(fileKey, queryEmbedding);
     type MetaData = {
-      text: string,
-      pageNumber:number
-    }
-    const qualifyingDocs = (await matches).filter((match)=>match.score && match.score > 0.7)
-    let doc = qualifyingDocs.map(match => match.metadata!.text).join("\n").substring(0,3000)
-    
-    console.log(doc)
+      text: string;
+      pageNumber: number;
+    };
+    const qualifyingDocs = (await matches).filter(
+      (match) => match.score && match.score > 0.7
+    );
+    let doc = qualifyingDocs
+      .map((match) => match.metadata!.text)
+      .join("\n")
+      .substring(0, 3000);
+
     const prompt = {
       role: "system",
       content: `AI assistant is a brand new, powerful, human-like artificial intelligence.
@@ -147,18 +154,21 @@ export async function generateText(
       AI assistant will not invent anything that is not drawn directly from the context.
       `,
     } as const;
-    
-    const result = streamText({
-      model: openai('gpt-3.5-turbo'),
-      messages:[ prompt, ...passedMessages],
-      
-    })
-    
-    result.pipeTextStreamToResponse(res)
-    
-  }catch(e){
-    throw next(e)
-  }
 
-  
+    let isFirst = true;
+    const result = streamText({
+      model: openai("gpt-3.5-turbo"),
+      messages: [prompt, ...passedMessages],
+      onFinish: () => {},
+      onChunk: () => {
+        if (isFirst) {
+          isFirst = false;
+        }
+      },
+    });
+
+    result.pipeTextStreamToResponse(res);
+  } catch (e) {
+    throw next(e);
+  }
 }
